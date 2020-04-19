@@ -1,0 +1,36 @@
+#
+# Static Public
+#
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    include snippets/auth-service.test-certificate.conf;
+    include snippets/ssl-params.conf;
+
+    server_name auth-service.test;
+
+    # Avoid trailing slashes
+    include snippets/trailingslash.conf;
+
+    location / {
+        proxy_pass http://localhost:3000/;
+    }
+
+    error_log /var/log/nginx/auth-service.test_error.log "error";
+    access_log  /var/log/nginx/auth-service.test_access.log;
+}
+
+#
+# HTTP to HTTPS redirect
+#
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name auth-service.test;
+
+    return 301 https://$server_name$request_uri;
+
+    error_log /var/log/nginx/auth-service.test_error.log "error";
+    access_log  /var/log/nginx/auth-service.test_access.log;
+}
