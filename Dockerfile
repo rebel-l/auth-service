@@ -7,6 +7,6 @@ RUN go build
 # Service
 FROM ubuntu:latest
 WORKDIR /usr/bin
-COPY --from=0 /usr/src/app/p-test .
+COPY --from=0 /usr/src/app/auth-service .
 EXPOSE 3000/tcp
-ENTRYPOINT ["p-test"]
+ENTRYPOINT ["auth-service"]
