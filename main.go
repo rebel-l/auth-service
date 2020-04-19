@@ -33,7 +33,8 @@ import (
 )
 
 const (
-	defaultPort = 3000
+	defaultPort    = 3000
+	defaultTimeout = 15
 )
 
 var log logrus.FieldLogger
@@ -57,7 +58,7 @@ func initCustom() error {
 func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
-	  TODO: example
+	  nolint: godox TODO: example
 	*/
 
 	return nil
@@ -89,8 +90,8 @@ func initService() {
 	srv := &http.Server{
 		Handler:      router,
 		Addr:         fmt.Sprintf(":%d", *port),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: defaultTimeout * time.Second,
+		ReadTimeout:  defaultTimeout * time.Second,
 	}
 
 	var err error
