@@ -25,6 +25,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rebel-l/smis/middleware/cors"
+
 	"github.com/gorilla/mux"
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/ping"
@@ -51,6 +53,16 @@ func initCustom() error {
 	/**
 	  2. add your custom service initialisation below, e.g. database connection, caches etc.
 	*/
+
+	// Middleware
+	svc.AddMiddleware(
+		smis.MiddlewareChainDefault,
+		cors.New(svc.Router, cors.Config{
+			AccessControlAllowHeaders: []string{"*"},
+			AccessControlAllowOrigins: []string{"https://www.shopfriend.test"},
+			AccessControlMaxAge:       24 * 60 * 60,
+		}),
+	) // TODO: init it based on config, config should be loaded from specific file
 
 	return nil
 }
