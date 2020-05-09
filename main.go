@@ -25,12 +25,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rebel-l/smis/middleware/cors"
-
 	"github.com/gorilla/mux"
+
 	"github.com/rebel-l/auth-service/endpoint/doc"
+	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
 	"github.com/rebel-l/smis"
+	"github.com/rebel-l/smis/middleware/cors"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -72,6 +74,9 @@ func initCustomRoutes() error {
 	  3. Register your custom routes below
 	  nolint: godox TODO: example
 	*/
+	if err := facebook.Init(svc); err != nil {
+		return fmt.Errorf("failed to init facebook endpoint: %w", err)
+	}
 
 	return nil
 }
