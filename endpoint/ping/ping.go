@@ -29,7 +29,7 @@ type ping struct {
 	svc *smis.Service
 }
 
-// Init initialises the ping endpoints
+// Init initialises the ping endpoints.
 func Init(svc *smis.Service) error {
 	endpoint := &ping{svc: svc}
 	_, err := svc.RegisterEndpoint("/ping", http.MethodGet, endpoint.pingHandler)

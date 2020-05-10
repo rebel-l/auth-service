@@ -51,7 +51,7 @@ func initCustomFlags() {
 	*/
 }
 
-func initCustom() error {
+func initCustom() error { // nolint:unparam
 	/**
 	  2. add your custom service initialisation below, e.g. database connection, caches etc.
 	*/
@@ -61,7 +61,10 @@ func initCustom() error {
 		AccessControlAllowHeaders: []string{"*"},
 		AccessControlAllowOrigins: []string{"https://www.shopfriend.test"},
 		AccessControlMaxAge:       cors.AccessControlMaxAgeDefault,
-	} // TODO: init it based on config, config should be loaded from specific file
+	}
+	// nolint:godox
+	//TODO: init it based on config, config should be loaded from specific file
+
 	svc.WithDefaultMiddleware(c)
 
 	return nil
@@ -117,11 +120,11 @@ func initService() {
 
 func initRoutes() error {
 	if err := initDefaultRoutes(); err != nil {
-		return fmt.Errorf("default routes failed: %s", err)
+		return fmt.Errorf("default routes failed: %w", err)
 	}
 
 	if err := initCustomRoutes(); err != nil {
-		return fmt.Errorf("custom routes failed: %s", err)
+		return fmt.Errorf("custom routes failed: %w", err)
 	}
 
 	return nil
