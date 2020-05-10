@@ -57,14 +57,12 @@ func initCustom() error {
 	*/
 
 	// Middleware
-	svc.AddMiddleware(
-		smis.MiddlewareChainDefault,
-		cors.New(svc.Router, cors.Config{
-			AccessControlAllowHeaders: []string{"*"},
-			AccessControlAllowOrigins: []string{"https://www.shopfriend.test"},
-			AccessControlMaxAge:       24 * 60 * 60,
-		}),
-	) // TODO: init it based on config, config should be loaded from specific file
+	c := cors.Config{
+		AccessControlAllowHeaders: []string{"*"},
+		AccessControlAllowOrigins: []string{"https://www.shopfriend.test"},
+		AccessControlMaxAge:       cors.AccessControlMaxAgeDefault,
+	} // TODO: init it based on config, config should be loaded from specific file
+	svc.WithDefaultMiddleware(c)
 
 	return nil
 }
@@ -72,7 +70,6 @@ func initCustom() error {
 func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
-	  nolint: godox TODO: example
 	*/
 	if err := facebook.Init(svc); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
