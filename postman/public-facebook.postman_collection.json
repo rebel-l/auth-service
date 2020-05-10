@@ -1,0 +1,573 @@
+{
+	"info": {
+		"_postman_id": "5a2c3751-2c2f-4a96-92ea-d38242da3c2c",
+		"name": "public/facebook",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "login",
+			"item": [
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "875d2bd9-ec40-466b-8806-6d958682340b",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"method not allowed, please check response headers for allowed methods\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e4afd746-81f4-44cb-8e11-8f16e47ff753",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"method not allowed, please check response headers for allowed methods\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "05c47112-0aa5-4b19-903e-8f3434b32a34",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "HEAD",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: preflight",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bd83b4e0-4d19-42d6-b7b8-078e1c6d14d3",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is No Content\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"    pm.response.to.have.status(\"No Content\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response doesn't have body\", function () {\r",
+									"    pm.expect(undefined).to.eql(pm.response.body)\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Request-ID Header is set\", function () {\r",
+									"    pm.response.to.have.header(\"X-Request-ID\");\r",
+									"    pm.expect(36).to.eql(postman.getResponseHeader(\"X-Request-ID\").length);\r",
+									"}); \r",
+									"\r",
+									"pm.test(\"Access Control Headers are correct\", function () {\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Headers\");\r",
+									"    pm.expect(\"*\").to.eql(postman.getResponseHeader(\"Access-Control-Allow-Headers\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Methods\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Access-Control-Allow-Methods\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Origin\");\r",
+									"    pm.expect(pm.environment.get(\"origin\")).to.eql(postman.getResponseHeader(\"Access-Control-Allow-Origin\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Max-Age\");\r",
+									"    pm.expect(\"86400\").to.eql(postman.getResponseHeader(\"Access-Control-Max-Age\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type isn't present\", function () {\r",
+									"    pm.expect(undefined).to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "OPTIONS",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "028c9f07-8c87-4eec-b179-7f382a3177b8",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"method not allowed, please check response headers for allowed methods\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ea483fbc-20a1-4629-a38a-dbefdf63558e",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"method not allowed, please check response headers for allowed methods\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: with facebook token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "62322404-890c-49bd-9459-297c00647ed2",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is ok\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.have.status(\"OK\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Request-ID Header is set\", function () {\r",
+									"    pm.response.to.have.header(\"X-Request-ID\");\r",
+									"    pm.expect(36).to.eql(postman.getResponseHeader(\"X-Request-ID\").length);\r",
+									"}); \r",
+									"\r",
+									"pm.test(\"Access Control Headers are correct\", function () {\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Headers\");\r",
+									"    pm.expect(\"*\").to.eql(postman.getResponseHeader(\"Access-Control-Allow-Headers\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Methods\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Access-Control-Allow-Methods\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Allow-Origin\");\r",
+									"    pm.expect(pm.environment.get(\"origin\")).to.eql(postman.getResponseHeader(\"Access-Control-Allow-Origin\"));\r",
+									"\r",
+									"    pm.response.to.have.header(\"Access-Control-Max-Age\");\r",
+									"    pm.expect(\"86400\").to.eql(postman.getResponseHeader(\"Access-Control-Max-Age\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"pong\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login: not allowed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "391603b5-60f7-4908-ab3d-09b56a14be07",
+								"exec": [
+									"var maxResponseTime = 30;\r",
+									"\r",
+									"pm.test(\"response is method not allowed\", function () {\r",
+									"    pm.response.to.have.status(405);\r",
+									"    pm.response.to.have.status(\"Method Not Allowed\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than \" + maxResponseTime + \"ms\", function () {\r",
+									"    pm.expect(maxResponseTime).to.be.above(pm.response.responseTime);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response has body\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present and is text/plain\", function () {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(\"text/plain; charset=utf-8\").to.eql(postman.getResponseHeader(\"Content-Type\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Header Allow is set correct\", function () {\r",
+									"    pm.response.to.have.header(\"Allow\");\r",
+									"    pm.expect(\"PUT,OPTIONS\").to.eql(postman.getResponseHeader(\"Allow\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"response body has correct data\", function () {\r",
+									"    pm.expect(\"method not allowed, please check response headers for allowed methods\").to.eql(pm.response.text());\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "TRACE",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/{{endpoint}}/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"{{endpoint}}",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e1019c98-77ae-4a9a-bc3d-72211fb7eab2",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "aa67e826-8239-4822-b793-42eac7bee001",
+						"type": "text/javascript",
+						"exec": [
+							"",
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"variable": [
+		{
+			"id": "23ada102-37ed-4c5e-8a2b-d8fdd4b440d3",
+			"key": "endpoint",
+			"value": "public/facebook",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
