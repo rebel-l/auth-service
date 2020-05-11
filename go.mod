@@ -1,5 +1,9 @@
 module github.com/rebel-l/auth-service
 
-go 1.12
+go 1.14
 
-require github.com/sirupsen/logrus v1.4.1
+require (
+	github.com/gorilla/mux v1.7.4
+	github.com/rebel-l/smis v0.4.0-alpha.2
+	github.com/sirupsen/logrus v1.6.0
+)

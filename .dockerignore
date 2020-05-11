@@ -1,0 +1,18 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+.git
+.gitignore
+.travis.yml
+.vagrant
+
+reports
+scripts
+vm
+
+Dockerfile
+
+LICENSE
+
+README.md
+
+Vagrantfile
