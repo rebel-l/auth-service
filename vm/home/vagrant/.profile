@@ -53,6 +53,11 @@ function ll(){
 #############
 alias nginxRel='sudo systemctl reload nginx'
 
+#############
+# Docker
+#############
+alias dockerPrune='sudo docker system prune -a'
+
 ###########
 # shutdown
 ###########
