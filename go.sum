@@ -208,6 +208,8 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/quasilyte/go-consistent v0.0.0-20190521200055-c6f3937de18c/go.mod h1:5STLWrekHfjyYwxBRVRXNOSewLJ3PWfDJd1VyTS21fI=
 github.com/rebel-l/go-utils v1.1.0 h1:HO9nmpDXe4TCWhwdpU3CgOvyswOjl68b1xS5PnCoLgc=
 github.com/rebel-l/go-utils v1.1.0/go.mod h1:6w3o+Nx+4M3TzPrKsb4Cojkf3WQKO3RPOqGUO+6sRPw=
+github.com/rebel-l/go-utils v1.2.0-rc.1 h1:nsb+Spszgm7U9a9wa6ivbrOXeJuwXlwCFZNqNPeUEKg=
+github.com/rebel-l/go-utils v1.2.0-rc.1/go.mod h1:Tq/xAySLXFOF/J4bVSfb+Q+GiLcHB1lSKVEMcLuUU0k=
 github.com/rebel-l/smis v0.4.0-alpha.2 h1:8NsCC+V2KWla0o6Rajeafwzwv9eTUnwFyZei0Ej80zA=
 github.com/rebel-l/smis v0.4.0-alpha.2/go.mod h1:2dg+8ZRhb+8eWuQhfGGJjdkOfjhOHcR/36M30LjG+hs=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=

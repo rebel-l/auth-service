@@ -30,6 +30,7 @@ import (
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
+	"github.com/rebel-l/go-utils/httputils"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
 
@@ -74,7 +75,7 @@ func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
 	*/
-	if err := facebook.Init(svc, facebook.NewClient()); err != nil {
+	if err := facebook.Init(svc, httputils.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
 	}
 
