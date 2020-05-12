@@ -11,8 +11,7 @@ const (
 )
 
 type loginPayload struct {
-	// nolint:godox
-	AccessToken string `json:"accessToken"` // TODO: unify key in frontend/backend to CamelCase
+	AccessToken string `json:"AccessToken"`
 }
 
 func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Request) {
