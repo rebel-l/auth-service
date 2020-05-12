@@ -33,7 +33,6 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 		writer.WriteHeader(http.StatusBadRequest)
 		_, _ = writer.Write([]byte(err.Error()))
 		log.Errorf("facebook login failed to parse request body: %v", err)
-		log.Errorf("facebook login failed to parse request body: %v", err)
 
 		return
 	}
