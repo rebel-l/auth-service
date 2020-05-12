@@ -74,7 +74,7 @@ func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
 	*/
-	if err := facebook.Init(svc); err != nil {
+	if err := facebook.Init(svc, facebook.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
 	}
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/rebel-l/auth-service/facebookapi"
+
 	"github.com/rebel-l/smis"
 )
 
@@ -13,11 +15,15 @@ import (
 
 type facebook struct {
 	svc *smis.Service
+	api facebookapi.API
 }
 
 // Init initialises the facebook endpoints.
-func Init(svc *smis.Service) error {
-	endpoint := &facebook{svc: svc}
+func Init(svc *smis.Service, client facebookapi.Client) error {
+	endpoint := &facebook{
+		svc: svc,
+		api: facebookapi.New(client),
+	}
 
 	_, err := svc.RegisterEndpointToPublicChain(pathLogin, http.MethodPut, endpoint.loginPutHandler)
 	if err != nil {
