@@ -1,8 +1,6 @@
 package facebook
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/rebel-l/smis"
@@ -12,28 +10,37 @@ const (
 	pathLogin = "/facebook/login"
 )
 
+var (
+	ErrRequest = smis.Error{
+		Code:       "FBL001",
+		StatusCode: http.StatusBadRequest,
+		External:   "no token received or not parsable",
+		Internal:   "facebook login failed, no token received or not parsable",
+	}
+
+	ErrLogin = smis.Error{
+		Code:       "FBL002",
+		StatusCode: http.StatusInternalServerError,
+		External:   "login failed",
+		Internal:   "facebook login failed",
+	}
+)
+
 type loginPayload struct {
 	AccessToken string `json:"AccessToken"`
 }
 
 func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Request) {
 	log := f.svc.NewLogForRequestID(request.Context())
+	resp := smis.Response{Log: log}
 
-	body, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		_, _ = writer.Write([]byte(err.Error()))
-		log.Errorf("facebook login failed to read request body: %v", err)
+	defer func() {
+		_ = request.Body.Close()
+	}()
 
-		return
-	}
-
-	var payload loginPayload
-	if err = json.Unmarshal(body, &payload); err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		_, _ = writer.Write([]byte(err.Error()))
-		log.Errorf("facebook login failed to parse request body: %v", err)
-
+	payload := &loginPayload{}
+	if err := smis.ParseJSONRequestBody(request, payload); err != nil {
+		resp.WriteJSONError(writer, ErrRequest.WithDetails(err))
 		return
 	}
 
@@ -41,14 +48,11 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 
 	user, err := f.api.Me(payload.AccessToken)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		_, _ = writer.Write([]byte(err.Error()))
-		log.Errorf("facebook login: %v", err)
-
+		resp.WriteJSONError(writer, ErrLogin.WithDetails(err))
 		return
 	}
+
 	log.Infof("FB Response Body: %#v", user)
 
-	resp := smis.Response{Log: log}
 	resp.WriteJSON(writer, http.StatusOK, user)
 }

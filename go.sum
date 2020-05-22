@@ -212,6 +212,12 @@ github.com/rebel-l/go-utils v1.2.0-rc.1 h1:nsb+Spszgm7U9a9wa6ivbrOXeJuwXlwCFZNqN
 github.com/rebel-l/go-utils v1.2.0-rc.1/go.mod h1:Tq/xAySLXFOF/J4bVSfb+Q+GiLcHB1lSKVEMcLuUU0k=
 github.com/rebel-l/smis v0.4.0-alpha.2 h1:8NsCC+V2KWla0o6Rajeafwzwv9eTUnwFyZei0Ej80zA=
 github.com/rebel-l/smis v0.4.0-alpha.2/go.mod h1:2dg+8ZRhb+8eWuQhfGGJjdkOfjhOHcR/36M30LjG+hs=
+github.com/rebel-l/smis v0.4.0-alpha.3 h1:Nkrt4ckfDgKpsysLOmcnN21z8VXA+K0xlRGPHOtWdh8=
+github.com/rebel-l/smis v0.4.0-alpha.3/go.mod h1:e32RFHWife3r8flDWvXSXPNxCfIPwNIRyd+ZtDOPErE=
+github.com/rebel-l/smis v0.4.0-alpha.4 h1:QwBvM3dTjkl+AEXjECBBpcpzMV/RhQgosiZNOFi4UJ0=
+github.com/rebel-l/smis v0.4.0-alpha.4/go.mod h1:e32RFHWife3r8flDWvXSXPNxCfIPwNIRyd+ZtDOPErE=
+github.com/rebel-l/smis v0.4.0-alpha.5 h1:ry8LkEjqZ/t7aWPYVQn2qxUafNJoa8+2tYjMXWm/xRM=
+github.com/rebel-l/smis v0.4.0-alpha.5/go.mod h1:e32RFHWife3r8flDWvXSXPNxCfIPwNIRyd+ZtDOPErE=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.2/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
@@ -324,6 +330,8 @@ golang.org/x/sys v0.0.0-20191008105621-543471e840be/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 h1:5B6i6EAiSYyejWfvc5Rc9BbI3rzIsrrXfAQBWnYfn+w=
 golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 h1:DYfZAGf2WMFjMxbgTjaC+2HC7NkNAQs+6Q8b9WEB/F4=
+golang.org/x/sys v0.0.0-20200519105757-fe76b779f299/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=

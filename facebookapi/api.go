@@ -1,11 +1,11 @@
 package facebookapi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+
+	"github.com/rebel-l/smis"
 )
 
 const (
@@ -14,8 +14,7 @@ const (
 )
 
 var (
-	ErrRequest       = errors.New("request to facebook failed") // TODO: introduce error struct with code
-	ErrParseResponse = errors.New("failed to parse response from facebook")
+	ErrRequest = errors.New("request to facebook failed")
 )
 
 type Client interface {
@@ -32,20 +31,23 @@ func New(client Client) API {
 
 func (a API) Me(accessToken string) (*User, error) {
 	requestURI := fmt.Sprintf("%s/me?fields=%s&access_token=%s", baseURL, fieldsDefault, accessToken)
+
 	resp, err := a.client.Get(requestURI)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrRequest, err)
 	}
 
-	// TODO: move the following lines to smis.ParseJSONBody()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: status code was :%d", ErrRequest, resp.StatusCode)
 	}
 
 	user := &User{}
-	if err = json.Unmarshal(body, user); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if err = smis.ParseJSONResponseBody(resp, user); err != nil {
+		return nil, err
 	}
 
 	return user, nil
