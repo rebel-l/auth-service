@@ -9,6 +9,6 @@ FROM ubuntu:latest
 RUN apt-get update \
     && apt-get install -y ca-certificates
 WORKDIR /usr/bin
-COPY --from=0 /usr/src/app/auth-service .
+COPY --from=0 /usr/src/app .
 EXPOSE 3000/tcp
 ENTRYPOINT ["auth-service"]

@@ -23,14 +23,22 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"path"
 	"time"
 
+	"github.com/rebel-l/go-utils/osutils"
+
+	"github.com/jmoiron/sqlx"
+
 	"github.com/gorilla/mux"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
 	"github.com/rebel-l/go-utils/httputils"
+	"github.com/rebel-l/schema"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
 
@@ -40,11 +48,18 @@ import (
 const (
 	defaultPort    = 3000
 	defaultTimeout = 15
+	sqlScriptPath  = "./scripts/sql"
+	sqlStoragePath = "./storage"
+	sqlStorageFile = sqlStoragePath + "/auth-service.db"
+	version        = "v0.1.0"
 )
 
-var log logrus.FieldLogger
-var port *int
-var svc *smis.Service
+var (
+	db   *sqlx.DB
+	log  logrus.FieldLogger
+	port *int
+	svc  *smis.Service
+)
 
 func initCustomFlags() {
 	/**
@@ -52,7 +67,7 @@ func initCustomFlags() {
 	*/
 }
 
-func initCustom() error { // nolint:unparam
+func initCustom() error {
 	/**
 	  2. add your custom service initialisation below, e.g. database connection, caches etc.
 	*/
@@ -64,9 +79,31 @@ func initCustom() error { // nolint:unparam
 		AccessControlMaxAge:       cors.AccessControlMaxAgeDefault,
 	}
 	// nolint:godox
-	//TODO: init it based on config, config should be loaded from specific file
+	//TODO: init based on config, config should be loaded from specific file
 
 	svc.WithDefaultMiddleware(c)
+
+	// Database
+	var err error
+	if err = osutils.CreateDirectoryIfNotExists(sqlStoragePath); err != nil {
+		return err
+	}
+
+	if err = osutils.CreateFileIfNotExists(sqlStorageFile); err != nil {
+		return err
+	}
+
+	// nolint:godox
+	db, err = sqlx.Open("sqlite3", sqlStorageFile) // TODO: take connection from config
+	if err != nil {
+		return err
+	}
+
+	s := schema.New(db)
+	s.WithProgressBar()
+	if err = s.Upgrade(path.Join(sqlScriptPath, "sqlite"), version); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -75,7 +112,7 @@ func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
 	*/
-	if err := facebook.Init(svc, httputils.NewClient()); err != nil {
+	if err := facebook.Init(svc, db, httputils.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
 	}
 

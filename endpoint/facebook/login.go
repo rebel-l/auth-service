@@ -38,6 +38,12 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 		_ = request.Body.Close()
 	}()
 
+	// nolint:godox
+	if err := f.db.Ping(); err != nil { // TODO just for tests, can be removed
+		resp.WriteJSONError(writer, errRequest.WithDetails(err))
+		return
+	}
+
 	payload := &loginPayload{}
 	if err := smis.ParseJSONRequestBody(request, payload); err != nil {
 		resp.WriteJSONError(writer, errRequest.WithDetails(err))
