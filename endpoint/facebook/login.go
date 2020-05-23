@@ -11,14 +11,14 @@ const (
 )
 
 var (
-	ErrRequest = smis.Error{
+	errRequest = smis.Error{
 		Code:       "FBL001",
 		StatusCode: http.StatusBadRequest,
 		External:   "no token received or not parsable",
 		Internal:   "facebook login failed, no token received or not parsable",
 	}
 
-	ErrLogin = smis.Error{
+	errLogin = smis.Error{
 		Code:       "FBL002",
 		StatusCode: http.StatusInternalServerError,
 		External:   "login failed",
@@ -40,7 +40,7 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 
 	payload := &loginPayload{}
 	if err := smis.ParseJSONRequestBody(request, payload); err != nil {
-		resp.WriteJSONError(writer, ErrRequest.WithDetails(err))
+		resp.WriteJSONError(writer, errRequest.WithDetails(err))
 		return
 	}
 
@@ -48,7 +48,7 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 
 	user, err := f.api.Me(payload.AccessToken)
 	if err != nil {
-		resp.WriteJSONError(writer, ErrLogin.WithDetails(err))
+		resp.WriteJSONError(writer, errLogin.WithDetails(err))
 		return
 	}
 
