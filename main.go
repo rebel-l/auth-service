@@ -26,8 +26,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/rebel-l/go-utils/osutils"
-
 	"github.com/jmoiron/sqlx"
 
 	"github.com/gorilla/mux"
@@ -38,6 +36,7 @@ import (
 	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
 	"github.com/rebel-l/go-utils/httputils"
+	"github.com/rebel-l/go-utils/osutils"
 	"github.com/rebel-l/schema"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
