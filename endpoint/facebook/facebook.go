@@ -7,10 +7,10 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/rebel-l/auth-service/facebookapi"
-
 	"github.com/rebel-l/smis"
 )
 
+// nolint: gocritic
 //var (
 //	ErrOnInit = errors.New("facebook init failed")
 //)
@@ -34,5 +34,5 @@ func Init(svc *smis.Service, db *sqlx.DB, client facebookapi.Client) error {
 		return fmt.Errorf("failed to init handler with path '%s:%s': %w", http.MethodPut, pathLogin, err)
 	}
 
-	return err
+	return nil
 }

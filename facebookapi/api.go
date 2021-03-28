@@ -13,22 +13,25 @@ const (
 	fieldsDefault = "id,name,email,first_name,last_name"
 )
 
-var (
-	ErrRequest = errors.New("request to facebook failed")
-)
+// ErrRequest describes the error happened on requests to facebook.
+var ErrRequest = errors.New("request to facebook failed")
 
+// Client defines the interface interacting with the facebook API.
 type Client interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
+// API is the struct communicating with the API of facebook.
 type API struct {
 	client Client
 }
 
+// New returns a new API struct.
 func New(client Client) API {
 	return API{client: client}
 }
 
+// Me is the request to the API of facebook returning the information of the current logged in user.
 func (a API) Me(accessToken string) (*User, error) {
 	requestURI := fmt.Sprintf("%s/me?fields=%s&access_token=%s", baseURL, fieldsDefault, accessToken)
 
@@ -47,7 +50,7 @@ func (a API) Me(accessToken string) (*User, error) {
 
 	user := &User{}
 	if err = smis.ParseJSONResponseBody(resp, user); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse response from facebook API /me: %w", err)
 	}
 
 	return user, nil

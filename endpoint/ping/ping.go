@@ -34,7 +34,7 @@ func Init(svc *smis.Service) error {
 	endpoint := &ping{svc: svc}
 	_, err := svc.RegisterEndpoint("/ping", http.MethodGet, endpoint.pingHandler)
 
-	return err
+	return err // nolint: wrapcheck
 }
 
 func (p *ping) pingHandler(writer http.ResponseWriter, request *http.Request) {

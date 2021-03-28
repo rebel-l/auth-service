@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package ping // nolint: testpackage
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -32,7 +33,9 @@ import (
 )
 
 func TestPingHandler(t *testing.T) {
-	req, err := http.NewRequest("GET", "/ping", nil)
+	t.Parallel()
+
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "/ping", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,6 +62,8 @@ func TestPingHandler(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	t.Parallel()
+
 	router := mux.NewRouter()
 	srv := &http.Server{
 		Handler:      router,
@@ -79,15 +84,15 @@ func TestInit(t *testing.T) {
 	err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err != nil {
-			return err
+			return err // nolint: wrapcheck
 		}
 
 		if pathTemplate != "/ping" {
 			t.Errorf("Expected single endpoint '/ping' but got '%s'", pathTemplate)
 		}
+
 		return nil
 	})
-
 	if err != nil {
 		t.Fatalf("walk through routes failed: %s", err)
 	}

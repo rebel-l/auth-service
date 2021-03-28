@@ -41,12 +41,14 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 	// nolint:godox
 	if err := f.db.Ping(); err != nil { // TODO just for tests, can be removed
 		resp.WriteJSONError(writer, errRequest.WithDetails(err))
+
 		return
 	}
 
 	payload := &loginPayload{}
 	if err := smis.ParseJSONRequestBody(request, payload); err != nil {
 		resp.WriteJSONError(writer, errRequest.WithDetails(err))
+
 		return
 	}
 
@@ -55,6 +57,7 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 	user, err := f.api.Me(payload.AccessToken)
 	if err != nil {
 		resp.WriteJSONError(writer, errLogin.WithDetails(err))
+
 		return
 	}
 

@@ -1,5 +1,6 @@
 package facebookapi
 
+// User defines the fields of a user returned from the facebook API.
 type User struct {
 	ID        string `json:"id"`
 	EMail     string `json:"email"`

@@ -78,30 +78,30 @@ func initCustom() error {
 		AccessControlMaxAge:       cors.AccessControlMaxAgeDefault,
 	}
 	// nolint:godox
-	//TODO: init based on config, config should be loaded from specific file
+	// TODO: init based on config, config should be loaded from specific file
 
 	svc.WithDefaultMiddleware(c)
 
 	// Database
 	var err error
 	if err = osutils.CreateDirectoryIfNotExists(sqlStoragePath); err != nil {
-		return err
+		return fmt.Errorf("failed to init storage path: %w", err)
 	}
 
 	if err = osutils.CreateFileIfNotExists(sqlStorageFile); err != nil {
-		return err
+		return fmt.Errorf("failed to init storage file: %w", err)
 	}
 
 	// nolint:godox
 	db, err = sqlx.Open("sqlite3", sqlStorageFile) // TODO: take connection from config
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	s := schema.New(db)
 	s.WithProgressBar()
 	if err = s.Upgrade(path.Join(sqlScriptPath, "sqlite"), version); err != nil {
-		return err
+		return fmt.Errorf("failed to init database: %w", err)
 	}
 
 	return nil
@@ -169,11 +169,11 @@ func initRoutes() error {
 
 func initDefaultRoutes() error {
 	if err := ping.Init(svc); err != nil {
-		return err
+		return fmt.Errorf("failed to init endpoint /ping: %w", err)
 	}
 
 	if err := doc.Init(svc); err != nil {
-		return err
+		return fmt.Errorf("failed to init endpoint /doc: %w", err)
 	}
 
 	return nil

@@ -15,7 +15,11 @@
     "linters": {
         "enable-all": true,
         "disable": [
+            "exhaustivestruct",
+            "gci",
             "gochecknoglobals",
+            "interfacer",
+            "maligned",
             "scopelint"
         ]
     },
