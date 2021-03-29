@@ -6,8 +6,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/rebel-l/auth-service/facebookapi"
 	"github.com/rebel-l/smis"
+
+	"github.com/rebel-l/auth-service/facebookapi"
 )
 
 // nolint: gocritic

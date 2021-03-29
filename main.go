@@ -32,14 +32,15 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/rebel-l/auth-service/endpoint/doc"
-	"github.com/rebel-l/auth-service/endpoint/facebook"
-	"github.com/rebel-l/auth-service/endpoint/ping"
 	"github.com/rebel-l/go-utils/httputils"
 	"github.com/rebel-l/go-utils/osutils"
 	"github.com/rebel-l/schema"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
+
+	"github.com/rebel-l/auth-service/endpoint/doc"
+	"github.com/rebel-l/auth-service/endpoint/facebook"
+	"github.com/rebel-l/auth-service/endpoint/ping"
 
 	"github.com/sirupsen/logrus"
 )
