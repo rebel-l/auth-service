@@ -55,8 +55,7 @@ func TestPingHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := "pong"
-	if w.Body.String() != expected {
+	if expected := "pong"; w.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
 	}
 }
