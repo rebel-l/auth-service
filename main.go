@@ -23,7 +23,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -33,11 +32,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/rebel-l/go-utils/httputils"
-	"github.com/rebel-l/go-utils/osutils"
-	"github.com/rebel-l/schema"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
 
+	"github.com/rebel-l/auth-service/bootstrap"
+	"github.com/rebel-l/auth-service/config"
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
@@ -48,9 +47,6 @@ import (
 const (
 	defaultPort    = 3000
 	defaultTimeout = 15
-	sqlScriptPath  = "./scripts/sql"
-	sqlStoragePath = "./storage"
-	sqlStorageFile = sqlStoragePath + "/auth-service.db"
 	version        = "v0.1.0"
 )
 
@@ -85,24 +81,11 @@ func initCustom() error {
 
 	// Database
 	var err error
-	if err = osutils.CreateDirectoryIfNotExists(sqlStoragePath); err != nil {
-		return fmt.Errorf("failed to init storage path: %w", err)
-	}
-
-	if err = osutils.CreateFileIfNotExists(sqlStorageFile); err != nil {
-		return fmt.Errorf("failed to init storage file: %w", err)
-	}
 
 	// nolint:godox
-	db, err = sqlx.Open("sqlite3", sqlStorageFile) // TODO: take connection from config
+	db, err = bootstrap.Database(&config.Database{}, version, true) // TODO: take connection from config
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	s := schema.New(db)
-	s.WithProgressBar()
-	if err = s.Upgrade(path.Join(sqlScriptPath, "sqlite"), version); err != nil {
-		return fmt.Errorf("failed to init database: %w", err)
 	}
 
 	return nil
