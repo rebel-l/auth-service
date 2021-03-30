@@ -102,7 +102,8 @@ func (u *User) Update(ctx context.Context, db *sqlx.DB) error {
 		WHERE id = ?;
 	`)
 
-	if _, err := db.ExecContext(ctx, q, u.EMail, u.FirstName, u.LastName, u.Password, u.ExternalID, u.Type, u.ID); err != nil {
+	_, err := db.ExecContext(ctx, q, u.EMail, u.FirstName, u.LastName, u.Password, u.ExternalID, u.Type, u.ID)
+	if err != nil {
 		return fmt.Errorf("failed to update: %w", err)
 	}
 
