@@ -7,6 +7,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/rebel-l/auth-service/facebookapi"
+
 	"github.com/google/uuid"
 )
 
@@ -19,11 +21,22 @@ type User struct {
 	EMail      string    `json:"EMail"`
 	FirstName  string    `json:"FirstName"`
 	LastName   string    `json:"LastName"`
-	Password   string    `json:"Password"`
+	Password   string    // TODO: ensure password is never exposed to public!
 	ExternalID string    `json:"ExternalID"`
 	Type       string    `json:"Type"`
 	CreatedAt  time.Time `json:"CreatedAt"`
 	ModifiedAt time.Time `json:"ModifiedAt"`
+}
+
+// NewFromFacebook returns a new user model out of a facebook user.
+func NewFromFacebook(fb *facebookapi.User) *User {
+	return &User{
+		EMail:      fb.EMail,
+		FirstName:  fb.FirstName,
+		LastName:   fb.LastName,
+		ExternalID: fb.ID,
+		Type:       TypeFacebook,
+	}
 }
 
 // DecodeJSON converts JSON data to struct.

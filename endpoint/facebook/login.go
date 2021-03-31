@@ -3,6 +3,9 @@ package facebook
 import (
 	"net/http"
 
+	"github.com/rebel-l/auth-service/user/usermapper"
+	"github.com/rebel-l/auth-service/user/usermodel"
+
 	"github.com/rebel-l/smis"
 )
 
@@ -38,23 +41,32 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 		_ = request.Body.Close()
 	}()
 
-	payload := &loginPayload{}
-	if err := smis.ParseJSONRequestBody(request, payload); err != nil {
+	// get details from facebook API
+	fbPayload := &loginPayload{}
+	if err := smis.ParseJSONRequestBody(request, fbPayload); err != nil {
 		resp.WriteJSONError(writer, errRequest.WithDetails(err))
 
 		return
 	}
 
-	log.Infof("access token: %#v", payload)
-
-	user, err := f.api.Me(payload.AccessToken)
+	fbUser, err := f.api.Me(fbPayload.AccessToken)
 	if err != nil {
 		resp.WriteJSONError(writer, errLogin.WithDetails(err))
 
 		return
 	}
 
-	log.Infof("FB Response Body: %#v", user)
+	// ensure user is in database
+	model := usermodel.NewFromFacebook(fbUser)
+	mapper := usermapper.New(f.db)
 
-	resp.WriteJSON(writer, http.StatusOK, user)
+	model, err = mapper.SaveByEmail(request.Context(), model)
+	if err != nil {
+		resp.WriteJSONError(writer, errLogin.WithDetails(err))
+
+		return
+	}
+
+	// nolint: godox
+	resp.WriteJSON(writer, http.StatusOK, model) // TODO: need to expose FirstName & JWT Token
 }

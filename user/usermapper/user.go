@@ -77,6 +77,25 @@ func (m *Mapper) Save(ctx context.Context, model *usermodel.User) (*usermodel.Us
 	return model, nil
 }
 
+func (m *Mapper) SaveByEmail(ctx context.Context, model *usermodel.User) (*usermodel.User, error) {
+	if model == nil {
+		return nil, fmt.Errorf("model shouldn't be nil")
+	}
+
+	users, err := userstore.Find(ctx, m.db, "email = ? AND type = ?", model.EMail, model.Type) // TODO: email only is enough
+	if err != nil {
+		return nil, err
+	}
+
+	user := users.First()
+	if user != nil {
+		model.ID = user.ID
+		model.Password = user.Password
+	}
+
+	return m.Save(ctx, model)
+}
+
 // Delete removes a model from database by ID.
 func (m *Mapper) Delete(ctx context.Context, id uuid.UUID) error {
 	s := &userstore.User{ID: id}
@@ -98,7 +117,7 @@ func StoreToModel(s *userstore.User) *usermodel.User {
 		EMail:      s.EMail,
 		FirstName:  s.FirstName,
 		LastName:   s.LastName,
-		Password:   s.Password,
+		Password:   s.Password, // TODO: never expose password
 		ExternalID: s.ExternalID,
 		Type:       s.Type,
 		CreatedAt:  s.CreatedAt,
@@ -113,7 +132,7 @@ func modelToStore(m *usermodel.User) *userstore.User {
 		EMail:      m.EMail,
 		FirstName:  m.FirstName,
 		LastName:   m.LastName,
-		Password:   m.Password,
+		Password:   m.Password, // TODO: never save password this way, there should be one method only
 		ExternalID: m.ExternalID,
 		Type:       m.Type,
 		CreatedAt:  m.CreatedAt,
