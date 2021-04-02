@@ -15,6 +15,7 @@ import (
 
 	"github.com/rebel-l/auth-service/bootstrap"
 	"github.com/rebel-l/auth-service/config"
+	"github.com/rebel-l/auth-service/facebookapi"
 	"github.com/rebel-l/auth-service/user/usermapper"
 	"github.com/rebel-l/auth-service/user/usermodel"
 	"github.com/rebel-l/auth-service/user/userstore"
@@ -533,6 +534,94 @@ func TestMapper_StoreToModel(t *testing.T) {
 			u := usermapper.StoreToModel(testCase.actual)
 
 			assertUser(t, testCase.expected, u)
+		})
+	}
+}
+
+func TestMapper_NewFromFacebook(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		facebook *facebookapi.User
+		expected *usermodel.User
+	}{
+		{
+			name: "facebook has ID only",
+			facebook: &facebookapi.User{
+				ID: "123",
+			},
+			expected: &usermodel.User{
+				ExternalID: "123",
+				Type:       usermodel.TypeFacebook,
+			},
+		},
+		{
+			name: "facebook has EMail only",
+			facebook: &facebookapi.User{
+				EMail: "j.strauss@gmx.de",
+			},
+			expected: &usermodel.User{
+				EMail: "j.strauss@gmx.de",
+				Type:  usermodel.TypeFacebook,
+			},
+		},
+		{
+			name: "facebook has FirstName only",
+			facebook: &facebookapi.User{
+				FirstName: "Johann",
+			},
+			expected: &usermodel.User{
+				FirstName: "Johann",
+				Type:      usermodel.TypeFacebook,
+			},
+		},
+		{
+			name: "facebook has LastName only",
+			facebook: &facebookapi.User{
+				LastName: "Strauss",
+			},
+			expected: &usermodel.User{
+				LastName: "Strauss",
+				Type:     usermodel.TypeFacebook,
+			},
+		},
+		{
+			name: "facebook has Name only",
+			facebook: &facebookapi.User{
+				Name: "Johann Strauss",
+			},
+			expected: &usermodel.User{
+				Type: usermodel.TypeFacebook,
+			},
+		},
+		{
+			name: "facebook has all fields",
+			facebook: &facebookapi.User{
+				ID:        "123",
+				EMail:     "j.strauss@gmx.de",
+				FirstName: "Johann",
+				LastName:  "Strauss",
+				Name:      "Johann Strauss",
+			},
+			expected: &usermodel.User{
+				ExternalID: "123",
+				EMail:      "j.strauss@gmx.de",
+				FirstName:  "Johann",
+				LastName:   "Strauss",
+				Type:       usermodel.TypeFacebook,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := usermodel.NewFromFacebook(testCase.facebook)
+
+			assertUser(t, testCase.expected, actual)
 		})
 	}
 }
