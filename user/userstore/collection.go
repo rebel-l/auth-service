@@ -2,10 +2,14 @@ package userstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
+
+// ErrFindFail indicates that find failed.
+var ErrFindFail = errors.New("failed to find users")
 
 // UserCollection is a collection of zero to many users.
 // nolint: godox
@@ -31,7 +35,7 @@ func Find(ctx context.Context, db *sqlx.DB, where string, args ...interface{}) (
 
 	if err := db.SelectContext(ctx, &collection, q, args...); err != nil {
 		// nolint: godox
-		return nil, fmt.Errorf("failed to find users: %w", err) // TODO: in generator replace 'users'
+		return nil, fmt.Errorf("%w: %v", ErrFindFail, err) // TODO: in generator replace 'users'
 	}
 
 	return collection, nil
