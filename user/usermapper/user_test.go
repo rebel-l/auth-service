@@ -303,6 +303,118 @@ func TestMapper_Save(t *testing.T) {
 	}
 }
 
+func TestMapper_SaveByEmail(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("long running test")
+	}
+
+	// 1. setup
+	db := setup(t, "mapperSave")
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("unable to close database connection: %v", err)
+		}
+	})
+
+	mapper := usermapper.New(db)
+
+	// 2. test
+	testCases := []struct {
+		name        string
+		prepare     *usermodel.User
+		actual      *usermodel.User
+		expected    *usermodel.User
+		expectedErr error
+		duplicate   bool
+	}{
+		{
+			name:        "model is nil",
+			expectedErr: usermapper.ErrNoData,
+		},
+		{
+			name: "model has no EMail",
+			actual: &usermodel.User{
+				FirstName:  "Edward",
+				LastName:   "Grieg",
+				ExternalID: "AMGt7oFDdSsHMsUl1J7ZP8YvBWaa1SIuMjXT",
+				Type:       usermodel.TypeStandard,
+			},
+			expectedErr: userstore.ErrEMailMissing,
+		},
+		{
+			name: "model has EMail and it doesn't exist",
+			actual: &usermodel.User{
+				EMail:      "g.haendel@test.org",
+				FirstName:  "Georg Friedrich",
+				LastName:   "Händel",
+				ExternalID: "soBzMYj6L44E",
+				Type:       usermodel.TypeStandard,
+			},
+			expected: &usermodel.User{
+				EMail:      "g.haendel@test.org",
+				FirstName:  "Georg Friedrich",
+				LastName:   "Händel",
+				ExternalID: "soBzMYj6L44E",
+				Type:       usermodel.TypeStandard,
+			},
+		},
+		{
+			name: "model has EMail and it exists",
+			prepare: &usermodel.User{
+				EMail:      "f.schubert@test.org",
+				FirstName:  "Friedrich",
+				LastName:   "Schubert",
+				ExternalID: "soBzMYj6L44E",
+				Type:       usermodel.TypeStandard,
+			},
+			actual: &usermodel.User{
+				EMail:      "f.schubert@test.org",
+				FirstName:  "Franz",
+				LastName:   "Schubert",
+				ExternalID: "soBzMYj6L44E",
+				Type:       usermodel.TypeStandard,
+			},
+			expected: &usermodel.User{
+				EMail:      "f.schubert@test.org",
+				FirstName:  "Franz",
+				LastName:   "Schubert",
+				ExternalID: "soBzMYj6L44E",
+				Type:       usermodel.TypeStandard,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var err error
+
+			if testCase.prepare != nil {
+				testCase.prepare, err = prepareData(db, testCase.prepare)
+				if err != nil {
+					t.Fatalf("failed to prepare data: %v", err)
+				}
+			}
+
+			res, err := mapper.SaveByEmail(context.Background(), testCase.actual)
+			if !errors.Is(err, testCase.expectedErr) {
+				t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+			}
+
+			if res != nil && testCase.expected != nil {
+				testCase.expected.ID = res.ID
+			}
+
+			assertUser(t, testCase.expected, res)
+		})
+	}
+}
+
 func TestMapper_Delete(t *testing.T) {
 	t.Parallel()
 
