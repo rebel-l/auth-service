@@ -7,8 +7,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// UserCollection is a collection of zero to many users.
+// nolint: godox
 type UserCollection []*User // TODO: generator
 
+// First returns the first user of the collection. Returns nil if there aren't any users in the collection.
 func (c UserCollection) First() *User {
 	if len(c) > 0 {
 		return c[0]
@@ -17,16 +20,17 @@ func (c UserCollection) First() *User {
 	return nil
 }
 
-func Find(ctx context.Context, db *sqlx.DB, where string, args ...interface{}) (UserCollection, error) { // TODO: generator
+// Find returns a collection of users depending on the where statement. Ensure to escape parameters in where-clause
+// with question marks (?) and provide the values in the correct order as last parameters.
+// nolint: godox
+// TODO: generator.
+func Find(ctx context.Context, db *sqlx.DB, where string, args ...interface{}) (UserCollection, error) {
 	var collection UserCollection
 
-	q := fmt.Sprintf(`
-		SELECT id, email, firstname, lastname, password, externalid, type, created_at, modified_at
-        FROM users
-        WHERE %s;
-	`, where) // TODO: have statement at a central place (constant)
+	q := db.Rebind(selectWhere(where))
 
-	if err := db.SelectContext(ctx, &collection, db.Rebind(q), args...); err != nil {
+	if err := db.SelectContext(ctx, &collection, q, args...); err != nil {
+		// nolint: godox
 		return nil, fmt.Errorf("failed to find users: %w", err) // TODO: in generator replace 'users'
 	}
 

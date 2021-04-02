@@ -77,18 +77,20 @@ func (m *Mapper) Save(ctx context.Context, model *usermodel.User) (*usermodel.Us
 	return model, nil
 }
 
+// SaveByEmail is identifying the user by his email and saves him (update or create).
 func (m *Mapper) SaveByEmail(ctx context.Context, model *usermodel.User) (*usermodel.User, error) {
 	if model == nil {
-		return nil, fmt.Errorf("model shouldn't be nil")
+		return nil, ErrNoData
 	}
 
-	users, err := userstore.Find(ctx, m.db, "email = ? AND type = ?", model.EMail, model.Type) // TODO: email only is enough
-	if err != nil {
-		return nil, err
+	user := &userstore.User{EMail: model.EMail}
+
+	err := user.ReadByEmail(ctx, m.db)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("failed to load user by email: %w", err)
 	}
 
-	user := users.First()
-	if user != nil {
+	if !errors.Is(err, sql.ErrNoRows) {
 		model.ID = user.ID
 		model.Password = user.Password
 	}
@@ -113,10 +115,11 @@ func StoreToModel(s *userstore.User) *usermodel.User {
 	}
 
 	return &usermodel.User{
-		ID:         s.ID,
-		EMail:      s.EMail,
-		FirstName:  s.FirstName,
-		LastName:   s.LastName,
+		ID:        s.ID,
+		EMail:     s.EMail,
+		FirstName: s.FirstName,
+		LastName:  s.LastName,
+		// nolint: godox
 		Password:   s.Password, // TODO: never expose password
 		ExternalID: s.ExternalID,
 		Type:       s.Type,
@@ -128,11 +131,12 @@ func StoreToModel(s *userstore.User) *usermodel.User {
 // modelToStore returns a store based on the given model object. It maps all properties from model to store.
 func modelToStore(m *usermodel.User) *userstore.User {
 	return &userstore.User{
-		ID:         m.ID,
-		EMail:      m.EMail,
-		FirstName:  m.FirstName,
-		LastName:   m.LastName,
-		Password:   m.Password, // TODO: never save password this way, there should be one method only
+		ID:        m.ID,
+		EMail:     m.EMail,
+		FirstName: m.FirstName,
+		LastName:  m.LastName,
+		// nolint: godox
+		Password:   m.Password, // TODO: never save password this way, there should be an explicit method for it
 		ExternalID: m.ExternalID,
 		Type:       m.Type,
 		CreatedAt:  m.CreatedAt,

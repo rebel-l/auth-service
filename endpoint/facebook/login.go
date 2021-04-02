@@ -29,8 +29,23 @@ var (
 	}
 )
 
-type loginPayload struct {
+type loginRequestBody struct {
 	AccessToken string `json:"AccessToken"`
+}
+
+type loginResponseBody struct {
+	FirstName string `json:"FirstName"`
+	Token     []byte `json:"Token"`
+}
+
+func newLoginResponseBody(m *usermodel.User) *loginResponseBody {
+	resp := &loginResponseBody{}
+
+	if m != nil {
+		resp.FirstName = m.FirstName
+	}
+
+	return resp
 }
 
 func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Request) {
@@ -42,7 +57,7 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 	}()
 
 	// get details from facebook API
-	fbPayload := &loginPayload{}
+	fbPayload := &loginRequestBody{}
 	if err := smis.ParseJSONRequestBody(request, fbPayload); err != nil {
 		resp.WriteJSONError(writer, errRequest.WithDetails(err))
 
@@ -68,5 +83,5 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 	}
 
 	// nolint: godox
-	resp.WriteJSON(writer, http.StatusOK, model) // TODO: need to expose FirstName & JWT Token
+	resp.WriteJSON(writer, http.StatusOK, newLoginResponseBody(model)) // TODO: need to expose JWT Token
 }

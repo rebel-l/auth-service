@@ -11,9 +11,20 @@ import (
 	"github.com/rebel-l/go-utils/uuidutils"
 )
 
+const (
+	sqlSelect = `
+		SELECT id, email, firstname, lastname, password, externalid, type, created_at, modified_at
+        FROM users
+        WHERE %s;
+	`
+)
+
 var (
 	// ErrIDMissing will be thrown if an ID is expected but not set.
 	ErrIDMissing = errors.New("id is mandatory for this operation")
+
+	// ErrEMailMissing will be thrown if an EMail is expected but not set.
+	ErrEMailMissing = errors.New("email is mandatory for this operation")
 
 	// ErrCreatingID will be thrown if creating an ID failed.
 	ErrCreatingID = errors.New("id creation failed")
@@ -74,12 +85,22 @@ func (u *User) Read(ctx context.Context, db *sqlx.DB) error {
 		return ErrIDMissing
 	}
 
-	q := db.Rebind(`
-        SELECT id, email, firstname, lastname, password, externalid, type, created_at, modified_at
-        FROM users
-        WHERE id = ?;
-    `)
+	q := db.Rebind(selectWhere("id = ?"))
 	if err := db.GetContext(ctx, u, q, u.ID); err != nil {
+		return fmt.Errorf("failed to read: %w", err)
+	}
+
+	return nil
+}
+
+// ReadByEmail sets the user from database by given EMail.
+func (u *User) ReadByEmail(ctx context.Context, db *sqlx.DB) error {
+	if u == nil || u.EMail == "" {
+		return ErrEMailMissing
+	}
+
+	q := db.Rebind(selectWhere("email = ?"))
+	if err := db.GetContext(ctx, u, q, u.EMail); err != nil {
 		return fmt.Errorf("failed to read: %w", err)
 	}
 
@@ -135,4 +156,8 @@ func (u *User) IsValid() bool {
 	}
 
 	return true
+}
+
+func selectWhere(where string) string {
+	return fmt.Sprintf(sqlSelect, where)
 }

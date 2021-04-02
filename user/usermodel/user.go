@@ -21,7 +21,7 @@ type User struct {
 	EMail      string    `json:"EMail"`
 	FirstName  string    `json:"FirstName"`
 	LastName   string    `json:"LastName"`
-	Password   string    // TODO: ensure password is never exposed to public!
+	Password   string    `json:"-"`
 	ExternalID string    `json:"ExternalID"`
 	Type       string    `json:"Type"`
 	CreatedAt  time.Time `json:"CreatedAt"`
