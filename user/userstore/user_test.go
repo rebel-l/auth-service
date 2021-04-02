@@ -247,6 +247,87 @@ func TestUser_Read(t *testing.T) {
 	}
 }
 
+func TestUser_ReadByEmail(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("long running test")
+	}
+
+	// 1. setup
+	db := setup(t, "storeReadByEMail")
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("unable to close database connection: %v", err)
+		}
+	})
+
+	// 2. test
+	testCases := []struct {
+		name        string
+		prepare     *userstore.User
+		expected    *userstore.User
+		expectedErr error
+	}{
+		{
+			name:        "EMail not set",
+			expectedErr: userstore.ErrEMailMissing,
+		},
+		{
+			name: "success",
+			prepare: &userstore.User{
+				EMail:     "c.garcia@test.net",
+				FirstName: "Chloe",
+				LastName:  "Garcia",
+				Type:      "facebook",
+			},
+			expected: &userstore.User{
+				EMail:     "c.garcia@test.net",
+				FirstName: "Chloe",
+				LastName:  "Garcia",
+				Type:      "facebook",
+			},
+		},
+		{
+			name: "not existing",
+			prepare: &userstore.User{
+				EMail: "w.a.mozart@vienna.com",
+			},
+			expectedErr: sql.ErrNoRows,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var eMail string
+			if testCase.prepare != nil {
+				if testCase.prepare.IsValid() {
+					err := testCase.prepare.Create(context.Background(), db)
+					if err != nil {
+						t.Errorf("preparation failed: %v", err)
+
+						return
+					}
+				}
+				eMail = testCase.prepare.EMail
+			}
+
+			actual := &userstore.User{EMail: eMail}
+			err := actual.ReadByEmail(context.Background(), db)
+			testingutils.ErrorsCheck(t, testCase.expectedErr, err)
+
+			if testCase.expectedErr == nil {
+				testCase.expected.ID = actual.ID
+				assertUser(t, testCase.expected, actual)
+			}
+		})
+	}
+}
+
 func assertUser(t *testing.T, expected, actual *userstore.User) {
 	t.Helper()
 
