@@ -56,7 +56,6 @@ func TestUser_DecodeJSON(t *testing.T) {
 				EMail:      "ellathomas148@example.org",
 				FirstName:  "William",
 				LastName:   "Garcia",
-				Password:   "HA6XIklcKS4z",
 				ExternalID: "SdOqZ7zkIa72eVJlb3GuR5hBN1YJMd9kQtLmGjZR5RFw3GgGc",
 				Type:       "a8dmw",
 				CreatedAt:  createdAt,
