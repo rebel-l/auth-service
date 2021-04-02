@@ -113,6 +113,8 @@ func TestFind(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
 			if len(testCase.prepare) > 0 {
 				prepare(t, db, testCase.prepare, testCase.expected)
 			}
@@ -141,8 +143,6 @@ func prepare(t *testing.T, db *sqlx.DB, users, expectedUsers userstore.UserColle
 			}
 		}
 	}
-
-	return
 }
 
 func assertCollection(t *testing.T, expected, actual userstore.UserCollection) {
@@ -152,7 +152,7 @@ func assertCollection(t *testing.T, expected, actual userstore.UserCollection) {
 		t.Fatalf("expected %d entries in collection but got %d", len(expected), len(actual))
 	}
 
-	for k, _ := range expected {
+	for k := range expected {
 		assertUser(t, expected[k], actual[k])
 	}
 }
