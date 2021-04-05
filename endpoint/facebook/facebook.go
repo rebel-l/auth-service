@@ -8,6 +8,7 @@ import (
 
 	"github.com/rebel-l/smis"
 
+	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/auth-service/facebookapi"
 )
 
@@ -17,17 +18,19 @@ import (
 //)
 
 type facebook struct {
-	api facebookapi.API
-	db  *sqlx.DB
-	svc *smis.Service
+	api         facebookapi.API
+	db          *sqlx.DB
+	svc         *smis.Service
+	tokenManger auth.TokenGenerator
 }
 
 // Init initialises the facebook endpoints.
-func Init(svc *smis.Service, db *sqlx.DB, client facebookapi.Client) error {
+func Init(svc *smis.Service, db *sqlx.DB, tokenManager auth.TokenGenerator, client facebookapi.Client) error {
 	endpoint := &facebook{
-		api: facebookapi.New(client),
-		db:  db,
-		svc: svc,
+		api:         facebookapi.New(client),
+		db:          db,
+		svc:         svc,
+		tokenManger: tokenManager,
 	}
 
 	_, err := svc.RegisterEndpointToPublicChain(pathLogin, http.MethodPut, endpoint.loginPutHandler)

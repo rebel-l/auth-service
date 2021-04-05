@@ -35,6 +35,7 @@ import (
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
 
+	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/auth-service/bootstrap"
 	"github.com/rebel-l/auth-service/config"
 	"github.com/rebel-l/auth-service/endpoint/doc"
@@ -51,10 +52,11 @@ const (
 )
 
 var (
-	db   *sqlx.DB
-	log  logrus.FieldLogger
-	port *int
-	svc  *smis.Service
+	db           *sqlx.DB
+	log          logrus.FieldLogger
+	port         *int
+	tokenManager *auth.Manager
+	svc          *smis.Service
 )
 
 func initCustomFlags() {
@@ -88,6 +90,10 @@ func initCustom() error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
+	// token Manager
+	// nolint:godox
+	tokenManager = auth.NewManager("secret1", "secret2") // TODO: secrets must be injected by config / env
+
 	return nil
 }
 
@@ -95,7 +101,7 @@ func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
 	*/
-	if err := facebook.Init(svc, db, httputils.NewClient()); err != nil {
+	if err := facebook.Init(svc, db, tokenManager, httputils.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
 	}
 

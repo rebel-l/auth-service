@@ -3,6 +3,7 @@ package facebook
 import (
 	"net/http"
 
+	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/auth-service/user/usermapper"
 	"github.com/rebel-l/auth-service/user/usermodel"
 
@@ -34,15 +35,23 @@ type loginRequestBody struct {
 }
 
 type loginResponseBody struct {
-	FirstName string `json:"FirstName"`
-	Token     []byte `json:"Token"`
+	FirstName string            `json:"FirstName"`
+	Tokens    map[string]string `json:"Tokens"`
 }
 
-func newLoginResponseBody(m *usermodel.User) *loginResponseBody {
-	resp := &loginResponseBody{}
+func newLoginResponseBody(m *usermodel.User, tokens map[string]*auth.Token) *loginResponseBody {
+	resp := &loginResponseBody{
+		Tokens: make(map[string]string),
+	}
 
 	if m != nil {
 		resp.FirstName = m.FirstName
+	}
+
+	for k, v := range tokens {
+		if v != nil {
+			resp.Tokens[k] = v.JWT
+		}
 	}
 
 	return resp
@@ -82,6 +91,10 @@ func (f *facebook) loginPutHandler(writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	// nolint: godox
-	resp.WriteJSON(writer, http.StatusOK, newLoginResponseBody(model)) // TODO: need to expose JWT Token
+	tokens, err := f.tokenManger.GenerateTokens(model)
+	if err != nil {
+		resp.WriteJSONError(writer, errLogin.WithDetails(err))
+	}
+
+	resp.WriteJSON(writer, http.StatusOK, newLoginResponseBody(model, tokens))
 }
