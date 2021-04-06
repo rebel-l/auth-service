@@ -16,6 +16,8 @@ docker rm auth-service
 docker build -t rebel1l/auth-service:$BRANCH .
 
 # start
-docker run --name auth-service -d -it  -v $STORAGE:/usr/bin/app/storage -p 3000:3000 rebel1l/auth-service:$BRANCH
+docker run --name auth-service -d -it  -v $STORAGE:/usr/bin/app/storage -p 3000:3000 --link redis:redis rebel1l/auth-service:$BRANCH
 docker logs auth-service
 docker ps
+
+df -h

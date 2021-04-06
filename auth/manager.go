@@ -31,6 +31,9 @@ var (
 
 	// ErrNoUser indicates that the user is not defined.
 	ErrNoUser = errors.New("user should be not nil")
+
+	// ErrNoStore indicates that no storage for the tokens was setup.
+	ErrNoStore = errors.New("no token store set")
 )
 
 // TokenGenerator defines an interfaces to generate JWT tokens.
@@ -42,18 +45,18 @@ type TokenGenerator interface {
 type Manager struct {
 	method  jwt.SigningMethod
 	secrets map[string]string
-
-	// TODO: we need a store ... redis?
+	store   Storage
 }
 
 // NewManager returns an instance of a manager to handle JWT tokens.
-func NewManager(accessSecret, refreshSecret string) *Manager {
+func NewManager(accessSecret, refreshSecret string, store Storage) *Manager {
 	return &Manager{
 		method: jwt.SigningMethodHS256,
 		secrets: map[string]string{
 			TokenTypeAccess:  accessSecret,
 			TokenTypeRefresh: refreshSecret,
 		},
+		store: store,
 	}
 }
 
@@ -79,6 +82,10 @@ func (m *Manager) GenerateTokens(user *usermodel.User) (map[string]*Token, error
 		return nil, fmt.Errorf("failed to create refresh token: %w", err)
 	}
 
+	if err := m.save(tokens); err != nil {
+		return nil, err
+	}
+
 	return tokens, nil
 }
 
@@ -94,18 +101,18 @@ func (m *Manager) createToken(tokenType string, user *usermodel.User) (*Token, e
 		"type":   tokenType,
 	}
 
-	var expires int64
+	expires := time.Now()
 
 	switch tokenType {
 	case TokenTypeAccess:
-		expires = time.Now().Add(LifetimeAccessToken).Unix() // TODO: maybe duration only?
+		expires = expires.Add(LifetimeAccessToken)
 
 		claims["authorized"] = true
 	case TokenTypeRefresh:
-		expires = time.Now().Add(LifetimeRefreshToken).Unix()
+		expires = expires.Add(LifetimeRefreshToken)
 	}
 
-	claims["exp"] = expires
+	claims["exp"] = expires.Unix()
 
 	secret, ok := m.secrets[tokenType]
 	if !ok || secret == "" {
@@ -113,4 +120,21 @@ func (m *Manager) createToken(tokenType string, user *usermodel.User) (*Token, e
 	}
 
 	return NewToken(id, expires, jwt.NewWithClaims(m.method, claims), secret)
+}
+
+func (m *Manager) save(tokens map[string]*Token) error {
+	if m.store == nil {
+		return ErrNoStore
+	}
+
+	for k, v := range tokens {
+		exp := time.Until(v.Expires)
+
+		res := m.store.Set(v.ID.String(), v.JWT, exp)
+		if res != nil && res.Err() != nil {
+			return fmt.Errorf("failed to store token %s/%d: %w", k, len(tokens), res.Err())
+		}
+	}
+
+	return nil
 }

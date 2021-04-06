@@ -22,12 +22,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/go-redis/redis/v7"
 
 	"github.com/gorilla/mux"
+
+	"github.com/jmoiron/sqlx"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -46,13 +49,17 @@ import (
 )
 
 const (
-	defaultPort    = 3000
-	defaultTimeout = 15
-	version        = "v0.1.0"
+	defaultPort      = 3000
+	defaultTimeout   = 15
+	defaultRedisAddr = "redis:6379"
+	version          = "v0.1.0"
 )
 
 var (
+	// nolint: godox
+	closers      []io.Closer // TODO: add to code generator
 	db           *sqlx.DB
+	kv           *redis.Client
 	log          logrus.FieldLogger
 	port         *int
 	tokenManager *auth.Manager
@@ -89,10 +96,23 @@ func initCustom() error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	closers = append(closers, db)
+
+	// Redis
+	kv = redis.NewClient(&redis.Options{
+		// nolint:godox
+		Addr: defaultRedisAddr, // TODO: take from config
+	})
+
+	_, err = kv.Ping().Result()
+	if err != nil {
+		return fmt.Errorf("failed to connect to redis: %w", err)
+	}
+	closers = append(closers, kv)
 
 	// token Manager
 	// nolint:godox
-	tokenManager = auth.NewManager("secret1", "secret2") // TODO: secrets must be injected by config / env
+	tokenManager = auth.NewManager("secret1", "secret2", kv) // TODO: secrets must be injected by config / env
 
 	return nil
 }
@@ -112,20 +132,32 @@ func main() {
 	log = logrus.New()
 	log.Info("Starting service: auth-service")
 
+	defer func() {
+		for _, v := range closers {
+			_ = v.Close()
+		}
+	}()
+
 	initFlags()
 	initService()
 
 	if err := initCustom(); err != nil {
-		log.Fatalf("Failed to initialise custom settings: %s", err)
+		log.Errorf("Failed to initialise custom settings: %s", err)
+
+		return
 	}
 
 	if err := initRoutes(); err != nil {
-		log.Fatalf("Failed to initialise routes: %s", err)
+		log.Errorf("Failed to initialise routes: %s", err)
+
+		return
 	}
 
 	log.Infof("Service listens to port %d", *port)
 	if err := svc.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to start server: %s", err)
+		log.Errorf("Failed to start server: %s", err)
+
+		return
 	}
 }
 

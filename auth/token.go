@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -15,11 +16,11 @@ var ErrNoJWT = errors.New("JWT should not be empty")
 type Token struct {
 	ID      uuid.UUID
 	JWT     string
-	Expires int64
+	Expires time.Time
 }
 
 // NewToken returns a new token struct.
-func NewToken(id uuid.UUID, expires int64, token *jwt.Token, secret string) (*Token, error) {
+func NewToken(id uuid.UUID, expires time.Time, token *jwt.Token, secret string) (*Token, error) {
 	if token == nil {
 		return nil, ErrNoJWT
 	}
