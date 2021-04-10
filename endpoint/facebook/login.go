@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	pathLogin = "/facebook/login"
+	pathLogin = "/facebook/confirmation"
 )
 
 var (
