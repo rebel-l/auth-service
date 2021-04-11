@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rebel-l/auth-service/auth"
+	"github.com/rebel-l/auth-service/endpoint/middleware"
 	"github.com/rebel-l/smis"
 )
 
@@ -34,7 +34,7 @@ func (u *user) logoutHandler(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	v := request.Context().Value(auth.ContextKeyUserID)
+	v := request.Context().Value(middleware.ContextKeyUserID)
 
 	userID, ok := v.(uuid.UUID)
 	if ok {

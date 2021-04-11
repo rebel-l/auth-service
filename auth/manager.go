@@ -55,6 +55,7 @@ type TokenGenerator interface {
 
 type TokenManager interface {
 	DeleteTokens(request *http.Request) error
+	RefreshTokens(refreshToken string) (map[string]string, error)
 }
 
 // Manager take care on token handling.
@@ -121,21 +122,28 @@ func (m *Manager) DeleteTokens(request *http.Request) error {
 	return nil
 }
 
-// IsAccessTokenValid returns true if the access token can be extracted from header and is valid.
-//func (m *Manager) IsAccessTokenValid(header http.Header) bool {
-//	bearerToken := extractToken(header)
-//
-//	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
-//	if err != nil {
-//		return false
-//	}
-//
-//	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
-//		return false
-//	}
-//
-//	return true
-//}
+func (m *Manager) RefreshTokens(refreshToken string) (map[string]string, error) {
+	tokenID, err := m.extractTokenID(refreshToken, TokenTypeRefresh)
+	if err != nil {
+		return nil, fmt.Errorf("refreshing token failed: %w", err)
+	}
+
+	userID, err := m.getUserID(tokenID)
+	if err != nil {
+		return nil, fmt.Errorf("refreshing token failed: %w", err)
+	}
+
+	if err := m.store.Del(tokenID).Err(); err != nil {
+		return nil, fmt.Errorf("refreshing token failed: %w", err)
+	}
+
+	tokens, err := m.GenerateTokens(&usermodel.User{ID: userID})
+	if err != nil {
+		return nil, fmt.Errorf("refreshing token failed: %w", err)
+	}
+
+	return tokens, nil
+}
 
 // GetUserID returns the user ID base on the access token in header.
 func (m *Manager) GetUserID(header http.Header) (uuid.UUID, error) {
@@ -169,26 +177,30 @@ func (m *Manager) getUserID(tokenID string) (uuid.UUID, error) {
 func (m *Manager) extractAccessTokenID(header http.Header) (string, error) {
 	bearerToken := extractToken(header)
 
-	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
+	return m.extractTokenID(bearerToken, TokenTypeAccess)
+}
+
+func (m *Manager) extractTokenID(tokenString, tokenType string) (string, error) {
+	token, err := m.verifyToken(tokenString, tokenType)
 	if err != nil {
 		return "", fmt.Errorf("failed to extract access token: %w", err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return "", fmt.Errorf("%s %w", TokenTypeAccess, ErrInvalidToken)
+		return "", fmt.Errorf("%s %w", tokenType, ErrInvalidToken)
 	}
 
 	id, ok := claims["id"].(string)
 	if !ok {
-		return "", fmt.Errorf("%s %w: no ID", TokenTypeAccess, ErrInvalidToken)
+		return "", fmt.Errorf("%s %w: no ID", tokenType, ErrInvalidToken)
 	}
 
 	return id, nil
 }
 
-func (m *Manager) verifyToken(bearerToken string, tokenType string) (*jwt.Token, error) {
-	return jwt.Parse(bearerToken, func(token *jwt.Token) (interface{}, error) {
+func (m *Manager) verifyToken(tokenString string, tokenType string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, token.Header["alg"])
 		}

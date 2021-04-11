@@ -1,4 +1,4 @@
-package auth
+package middleware
 
 import (
 	"context"
@@ -7,22 +7,23 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/smis"
 )
 
-const ContextKeyUserID = "userID"
+const ContextKeyUserID contextType = "userID"
 
 var (
 	ErrNoTokenValidator = errors.New("token validate should never be nil")
 
-	errInvalidToken = smis.Error{
+	ErrInvalidToken = smis.Error{
 		Code:       "AUTH002",
 		StatusCode: http.StatusUnauthorized,
 		External:   "not authorized for this operation",
 		Internal:   "authorization failed as token is invalid",
 	}
 
-	errExpiredToken = smis.Error{
+	ErrExpiredToken = smis.Error{
 		Code:       "AUTH003",
 		StatusCode: http.StatusUnauthorized,
 		External:   "authorization has expired",
@@ -30,24 +31,26 @@ var (
 	}
 )
 
+type contextType string
+
 type Authenticator interface {
 	GetUserID(header http.Header) (uuid.UUID, error)
 }
 
-type Middleware struct {
+type Auth struct {
 	svc  *smis.Service
 	auth Authenticator
 }
 
-func NewMiddleware(svc *smis.Service, auth Authenticator) (*Middleware, error) {
+func NewAuth(svc *smis.Service, auth Authenticator) (*Auth, error) {
 	if auth == nil {
 		return nil, ErrNoTokenValidator
 	}
 
-	return &Middleware{svc: svc, auth: auth}, nil
+	return &Auth{svc: svc, auth: auth}, nil
 }
 
-func (m *Middleware) Handler(next http.Handler) http.Handler {
+func (m *Auth) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		log := m.svc.NewLogForRequestID(request.Context())
 		resp := smis.Response{Log: log}
@@ -58,13 +61,13 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 
 		uID, err := m.auth.GetUserID(request.Header)
 		if err != nil {
-			if errors.Is(err, ErrTokenExpired) {
-				resp.WriteJSONError(writer, errExpiredToken.WithDetails(err))
+			if errors.Is(err, auth.ErrTokenExpired) {
+				resp.WriteJSONError(writer, ErrExpiredToken.WithDetails(err))
 
 				return
 			}
 
-			resp.WriteJSONError(writer, errInvalidToken.WithDetails(err))
+			resp.WriteJSONError(writer, ErrInvalidToken.WithDetails(err))
 
 			return
 		}

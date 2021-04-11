@@ -43,6 +43,7 @@ import (
 	"github.com/rebel-l/auth-service/config"
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/facebook"
+	"github.com/rebel-l/auth-service/endpoint/middleware"
 	"github.com/rebel-l/auth-service/endpoint/ping"
 	"github.com/rebel-l/auth-service/endpoint/user"
 
@@ -105,7 +106,7 @@ func initCustom() error {
 
 	svc.WithDefaultMiddleware(c)
 
-	authMiddleware, err := auth.NewMiddleware(svc, tokenManager)
+	authMiddleware, err := middleware.NewAuth(svc, tokenManager)
 	if err != nil {
 		return fmt.Errorf("failed to setup auth middleware: %w", err)
 	}
