@@ -78,6 +78,22 @@ func initCustom() error {
 	  2. add your custom service initialisation below, e.g. database connection, caches etc.
 	*/
 
+	// Redis
+	kv = redis.NewClient(&redis.Options{
+		// nolint:godox
+		Addr: defaultRedisAddr, // TODO: take from config
+	})
+
+	_, err := kv.Ping().Result()
+	if err != nil {
+		return fmt.Errorf("failed to connect to redis: %w", err)
+	}
+	closers = append(closers, kv)
+
+	// token Manager
+	// nolint:godox
+	tokenManager = auth.NewManager("secret1", "secret2", kv) // TODO: secrets must be injected by config / env
+
 	// Middleware
 	c := cors.Config{
 		AccessControlAllowHeaders: []string{"*"},
@@ -89,31 +105,19 @@ func initCustom() error {
 
 	svc.WithDefaultMiddleware(c)
 
-	// Database
-	var err error
+	authMiddleware, err := auth.NewMiddleware(svc, tokenManager)
+	if err != nil {
+		return fmt.Errorf("failed to setup auth middleware: %w", err)
+	}
+	svc.AddMiddlewareForRestrictedChain(authMiddleware.Handler)
 
+	// Database
 	// nolint:godox
 	db, err = bootstrap.Database(&config.Database{}, version, true) // TODO: take connection from config
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 	closers = append(closers, db)
-
-	// Redis
-	kv = redis.NewClient(&redis.Options{
-		// nolint:godox
-		Addr: defaultRedisAddr, // TODO: take from config
-	})
-
-	_, err = kv.Ping().Result()
-	if err != nil {
-		return fmt.Errorf("failed to connect to redis: %w", err)
-	}
-	closers = append(closers, kv)
-
-	// token Manager
-	// nolint:godox
-	tokenManager = auth.NewManager("secret1", "secret2", kv) // TODO: secrets must be injected by config / env
 
 	return nil
 }

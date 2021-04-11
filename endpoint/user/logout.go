@@ -27,6 +27,8 @@ func (u *user) logoutHandler(writer http.ResponseWriter, request *http.Request) 
 
 	if err := u.tokenManger.DeleteTokens(request); err != nil {
 		resp.WriteJSONError(writer, errLogout.WithDetails(err))
+
+		return
 	}
 
 	writer.WriteHeader(http.StatusNoContent)

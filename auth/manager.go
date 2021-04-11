@@ -36,8 +36,10 @@ var (
 	// ErrNoStore indicates that no storage for the tokens was setup.
 	ErrNoStore = errors.New("no token store set")
 
+	// ErrUnexpectedSigningMethod indicates that the signing method of the token is wrong.
 	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
 
+	// ErrInvalidToken indicates that the was manipulated and is not valid anymore.
 	ErrInvalidToken = errors.New("token is invalid")
 )
 
@@ -48,6 +50,10 @@ type TokenGenerator interface {
 
 type TokenManager interface {
 	DeleteTokens(request *http.Request) error
+}
+
+type TokenValidator interface {
+	IsAccessTokenValid(header http.Header) bool
 }
 
 // Manager take care on token handling.
@@ -111,6 +117,22 @@ func (m *Manager) DeleteTokens(request *http.Request) error {
 	}
 
 	return nil
+}
+
+// IsAccessTokenValid returns true if the access token can be extracted from header and is valid.
+func (m *Manager) IsAccessTokenValid(header http.Header) bool {
+	bearerToken := extractToken(header)
+
+	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
+	if err != nil {
+		return false
+	}
+
+	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
+		return false
+	}
+
+	return true
 }
 
 // ExtractAccessTokenID returns token from request header.
