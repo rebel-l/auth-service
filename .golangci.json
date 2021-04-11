@@ -6,6 +6,14 @@
                 "linters": [
                     "wsl"
                 ]
+            },
+            {
+                "path": "_test.go",
+                "linters": [
+                    "cyclop",
+                    "funlen",
+                    "lll"
+                ]
             }
         ],
         "exclude-use-default": false,
@@ -15,7 +23,11 @@
     "linters": {
         "enable-all": true,
         "disable": [
+            "exhaustivestruct",
+            "gci",
             "gochecknoglobals",
+            "interfacer",
+            "maligned",
             "scopelint"
         ]
     },

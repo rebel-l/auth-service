@@ -22,28 +22,51 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
+	"github.com/go-redis/redis/v7"
+
 	"github.com/gorilla/mux"
 
-	"github.com/rebel-l/auth-service/endpoint/doc"
-	"github.com/rebel-l/auth-service/endpoint/facebook"
-	"github.com/rebel-l/auth-service/endpoint/ping"
+	"github.com/jmoiron/sqlx"
+
+	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/rebel-l/go-utils/httputils"
 	"github.com/rebel-l/smis"
 	"github.com/rebel-l/smis/middleware/cors"
+
+	"github.com/rebel-l/auth-service/auth"
+	"github.com/rebel-l/auth-service/bootstrap"
+	"github.com/rebel-l/auth-service/config"
+	"github.com/rebel-l/auth-service/endpoint/doc"
+	"github.com/rebel-l/auth-service/endpoint/facebook"
+	"github.com/rebel-l/auth-service/endpoint/middleware"
+	"github.com/rebel-l/auth-service/endpoint/ping"
+	"github.com/rebel-l/auth-service/endpoint/user"
 
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	defaultPort    = 3000
-	defaultTimeout = 15
+	defaultPort      = 3000
+	defaultTimeout   = 15
+	defaultRedisAddr = "redis:6379"
+	version          = "v0.1.0"
 )
 
-var log logrus.FieldLogger
-var port *int
-var svc *smis.Service
+var (
+	// nolint: godox
+	closers      []io.Closer // TODO: add to code generator
+	db           *sqlx.DB
+	kv           *redis.Client
+	log          logrus.FieldLogger
+	port         *int
+	tokenManager *auth.Manager
+	svc          *smis.Service
+)
 
 func initCustomFlags() {
 	/**
@@ -51,10 +74,26 @@ func initCustomFlags() {
 	*/
 }
 
-func initCustom() error { // nolint:unparam
+func initCustom() error {
 	/**
 	  2. add your custom service initialisation below, e.g. database connection, caches etc.
 	*/
+
+	// Redis
+	kv = redis.NewClient(&redis.Options{
+		// nolint:godox
+		Addr: defaultRedisAddr, // TODO: take from config
+	})
+
+	_, err := kv.Ping().Result()
+	if err != nil {
+		return fmt.Errorf("failed to connect to redis: %w", err)
+	}
+	closers = append(closers, kv)
+
+	// token Manager
+	// nolint:godox
+	tokenManager = auth.NewManager("secret1", "secret2", kv) // TODO: secrets must be injected by config / env
 
 	// Middleware
 	c := cors.Config{
@@ -63,9 +102,23 @@ func initCustom() error { // nolint:unparam
 		AccessControlMaxAge:       cors.AccessControlMaxAgeDefault,
 	}
 	// nolint:godox
-	//TODO: init it based on config, config should be loaded from specific file
+	// TODO: init based on config, config should be loaded from specific file
 
 	svc.WithDefaultMiddleware(c)
+
+	authMiddleware, err := middleware.NewAuth(svc, tokenManager)
+	if err != nil {
+		return fmt.Errorf("failed to setup auth middleware: %w", err)
+	}
+	svc.AddMiddlewareForRestrictedChain(authMiddleware.Handler)
+
+	// Database
+	// nolint:godox
+	db, err = bootstrap.Database(&config.Database{}, version, true) // TODO: take connection from config
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	closers = append(closers, db)
 
 	return nil
 }
@@ -74,8 +127,12 @@ func initCustomRoutes() error {
 	/**
 	  3. Register your custom routes below
 	*/
-	if err := facebook.Init(svc); err != nil {
+	if err := facebook.Init(svc, db, tokenManager, httputils.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
+	}
+
+	if err := user.Init(svc, tokenManager); err != nil {
+		return fmt.Errorf("failed to init user endpoint: %w", err)
 	}
 
 	return nil
@@ -85,20 +142,32 @@ func main() {
 	log = logrus.New()
 	log.Info("Starting service: auth-service")
 
+	defer func() {
+		for _, v := range closers {
+			_ = v.Close()
+		}
+	}()
+
 	initFlags()
 	initService()
 
 	if err := initCustom(); err != nil {
-		log.Fatalf("Failed to initialise custom settings: %s", err)
+		log.Errorf("Failed to initialise custom settings: %s", err)
+
+		return
 	}
 
 	if err := initRoutes(); err != nil {
-		log.Fatalf("Failed to initialise routes: %s", err)
+		log.Errorf("Failed to initialise routes: %s", err)
+
+		return
 	}
 
 	log.Infof("Service listens to port %d", *port)
 	if err := svc.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to start server: %s", err)
+		log.Errorf("Failed to start server: %s", err)
+
+		return
 	}
 }
 
@@ -132,11 +201,11 @@ func initRoutes() error {
 
 func initDefaultRoutes() error {
 	if err := ping.Init(svc); err != nil {
-		return err
+		return fmt.Errorf("failed to init endpoint /ping: %w", err)
 	}
 
 	if err := doc.Init(svc); err != nil {
-		return err
+		return fmt.Errorf("failed to init endpoint /doc: %w", err)
 	}
 
 	return nil

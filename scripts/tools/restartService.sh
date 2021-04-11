@@ -1,14 +1,23 @@
 #!/bin/bash
-
+STORAGE=`pwd`/storage
 BRANCH=`git rev-parse --abbrev-ref HEAD | sed -r 's/\/+/-/g'`
 
+echo
+echo "Restart Auth Service ..."
+echo "Branch: $BRANCH"
+echo "Storage: $STORAGE"
+echo
+
 # stop
-sudo docker stop auth-service
-sudo docker rm auth-service
+docker stop auth-service
+docker rm auth-service
 
 # build
-sudo docker build -t rebel1l/auth-service:$BRANCH .
+docker build -t rebel1l/auth-service:$BRANCH .
 
 # start
-sudo docker run --name auth-service -d -it -p 3000:3000 rebel1l/auth-service:$BRANCH
-sudo docker ps
+docker run --name auth-service -d -it  -v $STORAGE:/usr/bin/app/storage -p 3000:3000 --link redis:redis rebel1l/auth-service:$BRANCH
+docker logs auth-service
+docker ps
+
+df -h
