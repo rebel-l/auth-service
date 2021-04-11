@@ -3,6 +3,9 @@ package user
 import (
 	"net/http"
 
+	"github.com/google/uuid"
+
+	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/smis"
 )
 
@@ -29,6 +32,13 @@ func (u *user) logoutHandler(writer http.ResponseWriter, request *http.Request) 
 		resp.WriteJSONError(writer, errLogout.WithDetails(err))
 
 		return
+	}
+
+	v := request.Context().Value(auth.ContextKeyUserID)
+
+	userID, ok := v.(uuid.UUID)
+	if ok {
+		log.Infof("user %s logged out", userID)
 	}
 
 	writer.WriteHeader(http.StatusNoContent)

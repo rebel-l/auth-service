@@ -9,5 +9,6 @@ import (
 // Storage defines an interface to store tokens.
 type Storage interface {
 	Del(keys ...string) *redis.IntCmd
+	Get(key string) *redis.StringCmd
 	Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 }

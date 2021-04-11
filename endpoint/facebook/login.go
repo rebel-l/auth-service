@@ -3,7 +3,6 @@ package facebook
 import (
 	"net/http"
 
-	"github.com/rebel-l/auth-service/auth"
 	"github.com/rebel-l/auth-service/user/usermapper"
 	"github.com/rebel-l/auth-service/user/usermodel"
 
@@ -39,19 +38,13 @@ type loginResponseBody struct {
 	Tokens    map[string]string `json:"Tokens"`
 }
 
-func newLoginResponseBody(m *usermodel.User, tokens map[string]*auth.Token) *loginResponseBody {
+func newLoginResponseBody(m *usermodel.User, tokens map[string]string) *loginResponseBody {
 	resp := &loginResponseBody{
-		Tokens: make(map[string]string),
+		Tokens: tokens,
 	}
 
 	if m != nil {
 		resp.FirstName = m.FirstName
-	}
-
-	for k, v := range tokens {
-		if v != nil {
-			resp.Tokens[k] = v.JWT
-		}
 	}
 
 	return resp

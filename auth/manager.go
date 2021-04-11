@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-redis/redis/v7"
 	"github.com/google/uuid"
 
 	"github.com/rebel-l/auth-service/user/usermodel"
@@ -41,19 +43,18 @@ var (
 
 	// ErrInvalidToken indicates that the was manipulated and is not valid anymore.
 	ErrInvalidToken = errors.New("token is invalid")
+
+	// ErrTokenExpired indicates that token has expired.
+	ErrTokenExpired = errors.New("token has expired")
 )
 
 // TokenGenerator defines an interfaces to generate JWT tokens.
 type TokenGenerator interface {
-	GenerateTokens(user *usermodel.User) (map[string]*Token, error)
+	GenerateTokens(user *usermodel.User) (map[string]string, error)
 }
 
 type TokenManager interface {
 	DeleteTokens(request *http.Request) error
-}
-
-type TokenValidator interface {
-	IsAccessTokenValid(header http.Header) bool
 }
 
 // Manager take care on token handling.
@@ -78,26 +79,27 @@ func NewManager(accessSecret, refreshSecret string, store Storage) *Manager {
 // GenerateTokens returns an access and a refresh token. It is important that the secrets are defined (not empty string)
 // on the Manager otherwise you'll get a ErrNoTokenSecret error for security reasons.
 // It expects a user model as parameter. It returns ErrNoUser id user is nil.
-func (m *Manager) GenerateTokens(user *usermodel.User) (map[string]*Token, error) {
+func (m *Manager) GenerateTokens(user *usermodel.User) (map[string]string, error) {
 	if user == nil {
 		return nil, ErrNoUser
 	}
 
-	tokens := make(map[string]*Token)
+	tokens := make(map[string]string)
+	details := make(map[string]*Details)
 
 	var err error
 
-	tokens[TokenTypeAccess], err = m.createToken(TokenTypeAccess, user)
+	tokens[TokenTypeAccess], details[TokenTypeAccess], err = m.createToken(TokenTypeAccess, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create access token: %w", err)
 	}
 
-	tokens[TokenTypeRefresh], err = m.createToken(TokenTypeRefresh, user)
+	tokens[TokenTypeRefresh], details[TokenTypeRefresh], err = m.createToken(TokenTypeRefresh, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create refresh token: %w", err)
 	}
 
-	if err := m.save(tokens); err != nil {
+	if err := m.save(details); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +108,7 @@ func (m *Manager) GenerateTokens(user *usermodel.User) (map[string]*Token, error
 
 // DeleteTokens deletes given tokens in request from storage.
 func (m *Manager) DeleteTokens(request *http.Request) error {
-	tokenID, err := m.ExtractAccessTokenID(request.Header)
+	tokenID, err := m.extractAccessTokenID(request.Header)
 	if err != nil {
 		return fmt.Errorf("failed to delete access token: %w", err)
 	}
@@ -120,23 +122,51 @@ func (m *Manager) DeleteTokens(request *http.Request) error {
 }
 
 // IsAccessTokenValid returns true if the access token can be extracted from header and is valid.
-func (m *Manager) IsAccessTokenValid(header http.Header) bool {
-	bearerToken := extractToken(header)
+//func (m *Manager) IsAccessTokenValid(header http.Header) bool {
+//	bearerToken := extractToken(header)
+//
+//	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
+//	if err != nil {
+//		return false
+//	}
+//
+//	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
+//		return false
+//	}
+//
+//	return true
+//}
 
-	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
+// GetUserID returns the user ID base on the access token in header.
+func (m *Manager) GetUserID(header http.Header) (uuid.UUID, error) {
+	tokenID, err := m.extractAccessTokenID(header)
 	if err != nil {
-		return false
+		return uuid.UUID{}, err
 	}
 
-	if _, ok := token.Claims.(jwt.Claims); !ok || !token.Valid {
-		return false
-	}
-
-	return true
+	return m.getUserID(tokenID)
 }
 
-// ExtractAccessTokenID returns token from request header.
-func (m *Manager) ExtractAccessTokenID(header http.Header) (string, error) {
+func (m *Manager) getUserID(tokenID string) (uuid.UUID, error) {
+	d, err := m.store.Get(tokenID).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return uuid.UUID{}, ErrTokenExpired
+		}
+
+		return uuid.UUID{}, fmt.Errorf("failed to get user id: %w", err)
+	}
+
+	userID, err := uuid.Parse(d)
+	if err != nil {
+		return userID, fmt.Errorf("failed to parse user ID from strorage: %w", err)
+	}
+
+	return userID, nil
+}
+
+// extractAccessTokenID returns token from request header.
+func (m *Manager) extractAccessTokenID(header http.Header) (string, error) {
 	bearerToken := extractToken(header)
 
 	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
@@ -167,10 +197,10 @@ func (m *Manager) verifyToken(bearerToken string, tokenType string) (*jwt.Token,
 	})
 }
 
-func (m *Manager) createToken(tokenType string, user *usermodel.User) (*Token, error) {
+func (m *Manager) createToken(tokenType string, user *usermodel.User) (string, *Details, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create UUID for token: %w", err)
+		return "", nil, fmt.Errorf("failed to create UUID for token: %w", err)
 	}
 
 	claims := jwt.MapClaims{
@@ -194,25 +224,47 @@ func (m *Manager) createToken(tokenType string, user *usermodel.User) (*Token, e
 
 	secret, ok := m.secrets[tokenType]
 	if !ok || secret == "" {
-		return nil, fmt.Errorf("%s token: %w", tokenType, ErrNoTokenSecret)
+		return "", nil, fmt.Errorf("%s token: %w", tokenType, ErrNoTokenSecret)
 	}
 
-	return NewToken(id, expires, jwt.NewWithClaims(m.method, claims), secret)
+	token := jwt.NewWithClaims(m.method, claims)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	details, err := NewToken(id, user.ID, expires)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create details: %w", err)
+	}
+
+	return tokenString, details, nil
 }
 
-func (m *Manager) save(tokens map[string]*Token) error {
+func (m *Manager) save(details map[string]*Details) error {
 	if m.store == nil {
 		return ErrNoStore
 	}
 
-	for k, v := range tokens {
+	for k, v := range details {
 		exp := time.Until(v.Expires)
 
-		res := m.store.Set(v.ID.String(), v.JWT, exp)
+		res := m.store.Set(v.ID.String(), v.UserID.String(), exp)
 		if res != nil && res.Err() != nil {
-			return fmt.Errorf("failed to store token %s/%d: %w", k, len(tokens), res.Err())
+			return fmt.Errorf("failed to store token %s/%d: %w", k, len(details), res.Err())
 		}
 	}
 
 	return nil
+}
+
+func extractToken(header http.Header) string {
+	token := header.Get(headerKeyAuth)
+
+	parts := strings.Split(token, " ")
+	if len(parts) > 1 {
+		return parts[1]
+	}
+
+	return ""
 }
