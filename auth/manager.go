@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -34,11 +35,19 @@ var (
 
 	// ErrNoStore indicates that no storage for the tokens was setup.
 	ErrNoStore = errors.New("no token store set")
+
+	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+
+	ErrInvalidToken = errors.New("token is invalid")
 )
 
 // TokenGenerator defines an interfaces to generate JWT tokens.
 type TokenGenerator interface {
 	GenerateTokens(user *usermodel.User) (map[string]*Token, error)
+}
+
+type TokenManager interface {
+	DeleteTokens(request *http.Request) error
 }
 
 // Manager take care on token handling.
@@ -87,6 +96,53 @@ func (m *Manager) GenerateTokens(user *usermodel.User) (map[string]*Token, error
 	}
 
 	return tokens, nil
+}
+
+// DeleteTokens deletes given tokens in request from storage.
+func (m *Manager) DeleteTokens(request *http.Request) error {
+	tokenID, err := m.ExtractAccessTokenID(request.Header)
+	if err != nil {
+		return fmt.Errorf("failed to delete access token: %w", err)
+	}
+
+	// TODO: delete refresh token too
+	if err := m.store.Del(tokenID).Err(); err != nil {
+		return fmt.Errorf("failed to delete tokens from store: %w", err)
+	}
+
+	return nil
+}
+
+// ExtractAccessTokenID returns token from request header.
+func (m *Manager) ExtractAccessTokenID(header http.Header) (string, error) {
+	bearerToken := extractToken(header)
+
+	token, err := m.verifyToken(bearerToken, TokenTypeAccess)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract access token: %w", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return "", fmt.Errorf("%s %w", TokenTypeAccess, ErrInvalidToken)
+	}
+
+	id, ok := claims["id"].(string)
+	if !ok {
+		return "", fmt.Errorf("%s %w: no ID", TokenTypeAccess, ErrInvalidToken)
+	}
+
+	return id, nil
+}
+
+func (m *Manager) verifyToken(bearerToken string, tokenType string) (*jwt.Token, error) {
+	return jwt.Parse(bearerToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, token.Header["alg"])
+		}
+
+		return []byte(m.secrets[tokenType]), nil
+	})
 }
 
 func (m *Manager) createToken(tokenType string, user *usermodel.User) (*Token, error) {

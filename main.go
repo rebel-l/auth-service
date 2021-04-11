@@ -44,6 +44,7 @@ import (
 	"github.com/rebel-l/auth-service/endpoint/doc"
 	"github.com/rebel-l/auth-service/endpoint/facebook"
 	"github.com/rebel-l/auth-service/endpoint/ping"
+	"github.com/rebel-l/auth-service/endpoint/user"
 
 	"github.com/sirupsen/logrus"
 )
@@ -123,6 +124,10 @@ func initCustomRoutes() error {
 	*/
 	if err := facebook.Init(svc, db, tokenManager, httputils.NewClient()); err != nil {
 		return fmt.Errorf("failed to init facebook endpoint: %w", err)
+	}
+
+	if err := user.Init(svc, tokenManager); err != nil {
+		return fmt.Errorf("failed to init user endpoint: %w", err)
 	}
 
 	return nil

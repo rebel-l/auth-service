@@ -3,10 +3,16 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+)
+
+const (
+	headerKeyAuth = "Authorization"
 )
 
 // ErrNoJWT indicates that the JWT is not defined.
@@ -35,4 +41,15 @@ func NewToken(id uuid.UUID, expires time.Time, token *jwt.Token, secret string) 
 		JWT:     t,
 		Expires: expires,
 	}, nil
+}
+
+func extractToken(header http.Header) string {
+	token := header.Get(headerKeyAuth)
+
+	parts := strings.Split(token, " ")
+	if len(parts) > 1 {
+		return parts[1]
+	}
+
+	return ""
 }
